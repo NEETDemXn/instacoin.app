@@ -2,7 +2,7 @@
 Do not use this app to rug pull or steal anyone's wallet or crypto. I'm going to hate you forever if you do! OH MAH GAH!
 
 <p align="center">
-    <img src="https://github.com/NEETDemXn/instacoin.app/blob/readme_logo.png">
+    <img src="https://github.com/NEETDemXn/instacoin.app/blob/main/blob/readme_logo.png">
 </p>
 
 # instacoin.app
