@@ -1,6 +1,7 @@
 import Image from "next/image";
 import Link from "next/link";
 
+import Provider from "@/Components/Provider";
 import Main from "./Main";
 
 // Images
@@ -55,7 +56,9 @@ export default function Home() {
   return (
     <div className="font-[family-name:Poppins]">
       <Navbar />
-      <Main />
+      <Provider>
+        <Main />
+      </Provider>
     </div>
   );
 }

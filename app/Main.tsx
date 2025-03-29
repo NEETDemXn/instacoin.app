@@ -1,87 +1,54 @@
 "use client";
 import { useState, useEffect } from "react";
+import { useWallet } from "@solana/wallet-adapter-react";
 
 // Icons
 import { IoIosClose } from "react-icons/io";
 
 // Types
-import Image from "next/image";
+// import Image from "next/image";
 
-// Images
-import Phantom from "@/public/phantom_icon.svg";
-import MetaMask from "@/public/metamask_icon.svg";
-import Coinbase from "@/public/coinbase_icon.svg";
-
-declare global {
-    interface Window {
-        solana?: any
-    }
-};
-
-function NotConnected({ setWalletAddress, closeConnectModal }: {
-    setWalletAddress: (addr: string) => void,
+function ConnectWallet({ closeConnectModal }: {
     closeConnectModal: () => void
 }) {
-    const [hasPhantom, setHasPhantom] = useState<boolean>(false);
+    const { wallets, select } = useWallet();
 
-    async function checkWalletConnect() {
-        if (typeof window !== "undefined" && window.solana?.isPhantom) {
-            setHasPhantom(true);
-        } else {
-            setHasPhantom(false);
-        }
-    }
-
-    async function connectPhantom() {
-        try {
-            const response = await window.solana.connect();
-            localStorage.setItem("walletAddress", response.publicKey.toString());
-            setWalletAddress(response.publicKey.toString());
-            closeConnectModal();
-        } catch (err) {
-            console.error(err);
-        }
-    }
-
-    useEffect(() => {
-        checkWalletConnect();
-    }, []);
     return (
-        <div className="flex flex-col m-auto bg-white border-5 rounded-xl mt-4" onClick={(e) => e.stopPropagation()}>
+        <div className="flex flex-col font-[family-name:Tektur] m-auto bg-white border-5 rounded-xl mt-4" onClick={(e) => e.stopPropagation()}>
             <div className="flex flex-row w-full justify-end h-4 my-2">
                 <IoIosClose className="hover:cursor-pointer hover:text-red active:text-red border-2 mr-2 rounded-md" size={40} onClick={closeConnectModal} />
             </div>
 
-            <span className="m-8 font-bold font-[family-name:Tektur] md:text-xl">
+            <span className="mx-auto mt-8 font-bold md:text-xl">
                 {"// Select Your Wallet Provider"}
             </span>
 
+            <span className="text-sm mx-2 text-center">
+                {"If you're using MetaMask and don't see it on the list, try refreshing your browser."}
+            </span>
+
             <div className="flex flex-col justify-between">
-                <div className="flex flex-col rounded-xl border-4 border-black w-2/3 mx-auto text-center p-1 my-2 hover:cursor-pointer hover:bg-pink hover:underline hover:text-white active:bg-pink active:underline active:text-white" onClick={connectPhantom}>
-                    <Image src={Phantom} alt="" className="w-12 mx-auto" />
-                    <span className="font-[family-name:Tektur]">Phantom</span>
-                    {
-                        hasPhantom && (
-                            <span className="font-[family-name:Tektur] text-xs">{"(detected)"}</span>
-                        )
-                    }
-                </div>
-
-                <div className="flex flex-col rounded-xl border-4 border-black w-2/3 mx-auto text-center p-1 my-2 hover:cursor-pointer hover:bg-pink hover:underline hover:text-white active:bg-pink active:underline active:text-white">
-                    <Image src={MetaMask} alt="" className="w-12 mx-auto" />
-                    <span className="font-[family-name:Tektur]">MetaMask</span>
-                </div>
-
-                <div className="flex flex-col rounded-xl border-4 border-black w-2/3 mx-auto text-center p-1 my-2 hover:cursor-pointer hover:bg-pink hover:underline hover:text-white active:bg-pink active:underline active:text-white">
-                    <Image src={Coinbase} alt="" className="w-12 mx-auto" />
-                    <span className="font-[family-name:Tektur]">Coinbase</span>
-                </div>
+                {
+                    wallets.map((wallet, i) => (
+                        <div
+                            key={i}
+                            className="flex flex-col rounded-xl border-4 border-black w-2/3 mx-auto text-center p-1 my-2 hover:cursor-pointer hover:bg-pink hover:underline hover:text-white active:bg-pink active:underline active:text-white"
+                            onClick={() => {
+                                select(wallet.adapter.name);
+                                closeConnectModal();
+                            }}
+                        >
+                            <img src={wallet.adapter.icon} alt="" className="w-12 mx-auto" />
+                            <span>{wallet.adapter.name}</span>
+                        </div>
+                    ))
+                }
             </div>
         </div>
     );
 }
 
-function Connected({ disconnectWallet, closeConnectModal }: {
+function DisconnectWallet({ disconnectWallet, closeConnectModal }: {
     disconnectWallet: () => void,
     closeConnectModal: () => void
 }) {
@@ -103,12 +70,11 @@ function Connected({ disconnectWallet, closeConnectModal }: {
     );
 }
 
-function ConnectWalletModal({ walletAddress, setWalletAddress, closeConnectModal, disconnectWallet }: {
-    walletAddress?: string,
-    setWalletAddress: (addr: string) => void,
+function WalletModal({ closeConnectModal, disconnectWallet }: {
     closeConnectModal: () => void,
     disconnectWallet: () => void
 }) {
+    const { publicKey } = useWallet();
 
     return (
         <div className="absolute flex m-auto top-0 left-0 flex z-10 h-screen w-full bg-black/50 overflow-hidden" onClick={closeConnectModal}>
@@ -116,10 +82,10 @@ function ConnectWalletModal({ walletAddress, setWalletAddress, closeConnectModal
             <div className="relative h-full w-full">
                 <div className="absolute flex w-full top-0 left-0">
                     {
-                        !walletAddress ?
-                            <NotConnected setWalletAddress={setWalletAddress} closeConnectModal={closeConnectModal} />
+                        publicKey === null ?
+                            <ConnectWallet closeConnectModal={closeConnectModal} />
                             :
-                            <Connected disconnectWallet={disconnectWallet} closeConnectModal={closeConnectModal} />
+                            <DisconnectWallet disconnectWallet={disconnectWallet} closeConnectModal={closeConnectModal} />
                     }
                 </div>
             </div>
@@ -128,17 +94,17 @@ function ConnectWalletModal({ walletAddress, setWalletAddress, closeConnectModal
     );
 }
 
-function WalletButton({ walletAddress, openConnectModal }: {
-    walletAddress?: string,
+function WalletButton({ openConnectModal }: {
     openConnectModal: () => void
 }) {
+    const { publicKey, wallet, connecting } = useWallet();
     const [innerText, setInnerText] = useState<string>("");
 
     useEffect(() => {
-        if (walletAddress) {
+        if (publicKey !== null) {
+            const walletAddress = publicKey.toString();
             let firstFourDigits = "";
             let lastFourDigits = "";
-
 
             for (let i = 0; i < 4; i++) {
                 firstFourDigits += walletAddress[i];
@@ -154,61 +120,52 @@ function WalletButton({ walletAddress, openConnectModal }: {
         } else {
             setInnerText("Connect Wallet");
         }
-    }, [walletAddress]);
+    }, [publicKey]);
 
     return (
-        <div className="bg-purple p-3 border-3 m-2 rounded-xl group hover:cursor-pointer hover:bg-pink active:bg-pink" onClick={openConnectModal}>
-            <span className="text-white font-bold group-hover:underline group-active:underline decoration-2">{innerText}</span>
+        <div className="flex flex-row bg-purple p-3 border-3 m-2 rounded-xl group hover:cursor-pointer hover:bg-pink active:bg-pink" onClick={openConnectModal}>
+            {
+                wallet && (
+                    <img src={wallet.adapter.icon} alt="" className="w-8 mx-2" />
+                )
+            }
+            <span className="m-auto text-white font-bold group-hover:underline group-active:underline decoration-2">
+                {
+                    connecting ?
+                        "CONNECTING..."
+                        :
+                        innerText
+                }
+            </span>
         </div>
     );
 }
 
 export default function Home() {
-    const [connectWallet, setConnectWallet] = useState<boolean>(false);
-    const [walletAddress, setWalletAddress] = useState<string | undefined>(undefined);
+    const { publicKey, disconnect } = useWallet();
+    const [modalVisible, setModalVisible] = useState<boolean>(false);
 
-    const openConnectModal = () => setConnectWallet(true);
-    const closeConnectModal = () => setConnectWallet(false);
+    const openConnectModal = () => setModalVisible(true);
+    const closeConnectModal = () => setModalVisible(false);
 
     async function handleDisconnectWallet() {
-        setWalletAddress(undefined);
+        disconnect();
         closeConnectModal();
-        localStorage.removeItem("walletAddress");
-        await window.solana?.disconnect();
     }
-
-    async function handleAutomaticWalletConnection() {
-        if (localStorage.getItem("walletAddress")) {
-            if (typeof window !== "undefined" && window.solana?.isPhantom) {
-                try {
-                    const res = await window.solana.connect({ onlyIfTrusted: true });
-                    setWalletAddress(res.publicKey.toString());
-                } catch {
-                    setWalletAddress(undefined);
-                }
-            }
-        }
-    }
-
-    useEffect(() => {
-        handleAutomaticWalletConnection();
-    }, []);
 
     return (
         <div className="flex flex-col relative">
             {
-                connectWallet && (
-                    <ConnectWalletModal
-                        walletAddress={walletAddress}
+                modalVisible && (
+                    <WalletModal
                         closeConnectModal={closeConnectModal}
-                        setWalletAddress={setWalletAddress}
                         disconnectWallet={handleDisconnectWallet}
                     />
                 )
             }
 
             <div className="w-full flex flex-row justify-end">
-                <WalletButton walletAddress={walletAddress} openConnectModal={openConnectModal} />
+                <WalletButton openConnectModal={openConnectModal} />
             </div>
 
             <div className="w-full flex flex-col mt-5">
@@ -220,7 +177,7 @@ export default function Home() {
 
                 <div className="mx-auto text-center">
                     <span className="font-[family-name:Tektur]">
-                        Launch your token quickly, securely, and easily! Check us out on <span className="underline hover:cursor-pointer hover:text-pink hover:font-bold active:text-pink hover:font-bold">GitHub</span>! We're open source!
+                        Launch your token quickly, securely, and easily! Check us out on <span className="underline hover:cursor-pointer hover:text-pink hover:font-bold active:text-pink hover:font-bold">GitHub</span>! {"We're open source!"}
                     </span>
                 </div>
             </div>
