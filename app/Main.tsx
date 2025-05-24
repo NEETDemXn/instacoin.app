@@ -1,12 +1,14 @@
 "use client";
-import { useState, useEffect } from "react";
+
+import { useState, useEffect, useMemo, memo } from "react";
 import { useWallet } from "@solana/wallet-adapter-react";
+
+// Components
+import WalletButton from "@/Components/WalletButton";
+import Form from "./Form";
 
 // Icons
 import { IoIosClose } from "react-icons/io";
-
-// Types
-// import Image from "next/image";
 
 function ConnectWallet({ closeConnectModal }: {
     closeConnectModal: () => void
@@ -14,7 +16,7 @@ function ConnectWallet({ closeConnectModal }: {
     const { wallets, select } = useWallet();
 
     return (
-        <div className="flex flex-col font-[family-name:Tektur] m-auto bg-white border-5 rounded-xl mt-4" onClick={(e) => e.stopPropagation()}>
+        <div className="flex flex-col font-[family-name:Tektur] m-auto bg-white border-5 rounded-xl mt-4 shadow-pop" onClick={(e) => e.stopPropagation()}>
             <div className="flex flex-row w-full justify-end h-4 my-2">
                 <IoIosClose className="hover:cursor-pointer hover:text-red active:text-red border-2 mr-2 rounded-md" size={40} onClick={closeConnectModal} />
             </div>
@@ -94,63 +96,18 @@ function WalletModal({ closeConnectModal, disconnectWallet }: {
     );
 }
 
-function WalletButton({ openConnectModal }: {
-    openConnectModal: () => void
-}) {
-    const { publicKey, wallet, connecting } = useWallet();
-    const [innerText, setInnerText] = useState<string>("");
-
-    useEffect(() => {
-        if (publicKey !== null) {
-            const walletAddress = publicKey.toString();
-            let firstFourDigits = "";
-            let lastFourDigits = "";
-
-            for (let i = 0; i < 4; i++) {
-                firstFourDigits += walletAddress[i];
-            }
-
-            for (let i = walletAddress.length - 1 - 4; i < walletAddress.length; i++) {
-                lastFourDigits += walletAddress[i];
-            }
-
-            const displayText = `${firstFourDigits}...${lastFourDigits}`;
-
-            setInnerText(displayText);
-        } else {
-            setInnerText("Connect Wallet");
-        }
-    }, [publicKey]);
-
-    return (
-        <div className="flex flex-row bg-purple p-3 border-3 m-2 rounded-xl group hover:cursor-pointer hover:bg-pink active:bg-pink" onClick={openConnectModal}>
-            {
-                wallet && (
-                    <img src={wallet.adapter.icon} alt="" className="w-8 mx-2" />
-                )
-            }
-            <span className="m-auto text-white font-bold group-hover:underline group-active:underline decoration-2">
-                {
-                    connecting ?
-                        "CONNECTING..."
-                        :
-                        innerText
-                }
-            </span>
-        </div>
-    );
-}
-
-export default function Home() {
-    const { publicKey, disconnect } = useWallet();
+export default function Main() {
+    const { disconnect } = useWallet();
     const [modalVisible, setModalVisible] = useState<boolean>(false);
+    const [page, setPage] = useState<0 | 1 | 2 | 3>(0);
 
     const openConnectModal = () => setModalVisible(true);
     const closeConnectModal = () => setModalVisible(false);
 
-    async function handleDisconnectWallet() {
+    function disconnectWallet() {
         disconnect();
-        closeConnectModal();
+        setModalVisible(false);
+        setPage(0);
     }
 
     return (
@@ -159,7 +116,7 @@ export default function Home() {
                 modalVisible && (
                     <WalletModal
                         closeConnectModal={closeConnectModal}
-                        disconnectWallet={handleDisconnectWallet}
+                        disconnectWallet={disconnectWallet}
                     />
                 )
             }
@@ -169,18 +126,22 @@ export default function Home() {
             </div>
 
             <div className="w-full flex flex-col mt-5">
-                <div className="mx-auto text-center w-full md:w-3/4">
-                    <span className="font-black text-4xl md:text-[72px]">
-                        CREATE YOUR OWN COIN ON THE SOLANA NETWORK, NO CODING NECESSARY!
-                    </span>
-                </div>
+                <div className="animate-fade-down animate-once">
+                    <div className="mx-auto text-center w-full md:w-3/4">
+                        <span className="font-black text-4xl md:text-[72px]">
+                            CREATE YOUR OWN COIN ON THE <span className="text-purple">SOLANA</span> NETWORK, NO CODING NECESSARY!
+                        </span>
+                    </div>
 
-                <div className="mx-auto text-center">
-                    <span className="font-[family-name:Tektur]">
-                        Launch your token quickly, securely, and easily! Check us out on <span className="underline hover:cursor-pointer hover:text-pink hover:font-bold active:text-pink hover:font-bold">GitHub</span>! {"We're open source!"}
-                    </span>
+                    <div className="mx-auto text-center">
+                        <span className="font-[family-name:Tektur]">
+                            Launch your token quickly, securely, and easily! Check us out on <span className="underline hover:cursor-pointer hover:text-pink hover:font-bold active:text-pink hover:font-bold">GitHub</span>! {"We're open source!"}
+                        </span>
+                    </div>
                 </div>
-            </div>
+            </div >
+
+            <Form page={page} setPage={setPage} openConnectModal={openConnectModal} />
         </div>
     );
 }

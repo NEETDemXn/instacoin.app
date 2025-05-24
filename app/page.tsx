@@ -2,6 +2,7 @@ import Image from "next/image";
 import Link from "next/link";
 
 import Provider from "@/Components/Provider";
+import RenderComponent from "./RenderComponent";
 import Main from "./Main";
 
 // Images
@@ -57,7 +58,9 @@ export default function Home() {
     <div className="font-[family-name:Poppins]">
       <Navbar />
       <Provider>
-        <Main />
+        <RenderComponent>
+          <Main />
+        </RenderComponent>
       </Provider>
     </div>
   );
