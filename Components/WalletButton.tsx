@@ -3,6 +3,8 @@
 import {useState, useEffect } from "react";
 import { useWallet } from "@solana/wallet-adapter-react";
 
+import Image from "next/image";
+
 export default function WalletButton({ openConnectModal }: {
     openConnectModal: () => void
 }) {
@@ -35,7 +37,7 @@ export default function WalletButton({ openConnectModal }: {
         <div className={`flex flex-row bg-purple p-3 border-3 m-2 rounded-xl group hover:cursor-pointer hover:bg-pink active:shadow-pop active:bg-pink`} onClick={openConnectModal}>
             {
                 wallet && (
-                    <img src={wallet.adapter.icon} alt="" className="w-8 mx-2" />
+                    <Image src={wallet.adapter.icon} alt="" className="w-8 mx-2" />
                 )
             }
             <span className="m-auto text-white font-bold group-hover:underline group-active:underline decoration-2">
