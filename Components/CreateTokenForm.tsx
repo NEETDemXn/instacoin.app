@@ -724,7 +724,7 @@ function CompletePage({ tokenForm, tempIconUrl, mintAddress, startOver }: {
                 <span className="font-bold mx-auto text-2xl lg:text-4xl">🎉 CONGRATULATIONS!</span>
                 <span className="mx-auto">This is the start of something amazing!</span>
             </div>
-            <img
+            <Image
                 src={tempIconUrl}
                 alt=""
                 height={120}

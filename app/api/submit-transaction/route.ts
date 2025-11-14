@@ -1,12 +1,9 @@
-export const dyanmic = "force-static";
+export const dynamic = "force-static";
 
 import { NextRequest, NextResponse } from "next/server";
 import { Connection, Transaction } from "@solana/web3.js";
 
-import { checkTransaction } from "@/lib/checkTransaction";
 import { mintToken } from "@/lib/mintToken";
-
-import type { TokenForm } from "@/lib/types/TokenForm";
 
 export async function POST(req: NextRequest) {
     const form = await req.formData();
@@ -46,11 +43,6 @@ export async function POST(req: NextRequest) {
             console.error("Transaction failed:", confirmation.err);
             return NextResponse.json({ msg: "There was a server error. Please reach out on Twitter before trying again." }, { status: 500 });
         }
-
-        // while ((await checkTransaction(signature)) === false) {
-        //     console.error("Signature didn't go through all the way. Retrying.");
-        //     await new Promise((resolve) => setTimeout(resolve, 3000));
-        // }
 
         const mintAddress = await mintToken(transactionId, tokenIcon);
 

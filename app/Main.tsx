@@ -1,6 +1,7 @@
 "use client";
 
-import { useState, useEffect, useMemo, memo } from "react";
+import { useState } from "react";
+import Image from "next/image";
 import { useWallet } from "@solana/wallet-adapter-react";
 
 // Components
@@ -40,7 +41,7 @@ function ConnectWallet({ closeConnectModal }: {
                                 closeConnectModal();
                             }}
                         >
-                            <img src={wallet.adapter.icon} alt="" className="w-12 mx-auto" />
+                            <Image src={wallet.adapter.icon} alt="" className="w-12 mx-auto" />
                             <span>{wallet.adapter.name}</span>
                         </div>
                     ))
