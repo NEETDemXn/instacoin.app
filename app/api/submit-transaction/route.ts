@@ -52,9 +52,13 @@ export async function POST(req: NextRequest) {
         //     await new Promise((resolve) => setTimeout(resolve, 3000));
         // }
 
-        const x = await mintToken(transactionId, tokenIcon);
+        const mintAddress = await mintToken(transactionId, tokenIcon);
 
-        return NextResponse.json({ msg: "Transaction success!" });
+        if (!mintAddress) {
+            throw new Error("Missing mint address!");
+        }
+
+        return NextResponse.json({ msg: "Transaction success!", signature, mintAddress });
     } catch (err) {
         console.error(err);
         return NextResponse.json({ msg: "There was a server error. Please try again." }, { status: 500 });

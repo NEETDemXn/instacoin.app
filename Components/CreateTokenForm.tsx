@@ -5,6 +5,7 @@ import { useWallet } from "@solana/wallet-adapter-react";
 import { Transaction } from "@solana/web3.js";
 import sharp from "sharp";
 import Image from "next/image";
+import Link from "next/link";
 
 // Types
 import type { ChangeEvent } from "react";
@@ -332,14 +333,15 @@ function PageTwo({ tokenForm, error, disabled, handleFormChange, clickNextPage, 
     );
 }
 
-function PageThree({ tokenForm, clickPrevPage, handleFormChange, toggleModifyCreatorData, toggleRevokeAuth, clickNextPage, setSignature }: {
+function PageThree({ tokenForm, clickPrevPage, handleFormChange, toggleModifyCreatorData, toggleRevokeAuth, clickNextPage, setSignature, setMintAddress }: {
     tokenForm: TokenForm,
     clickPrevPage: () => void,
     handleFormChange: (evt: ChangeEvent<HTMLInputElement | HTMLTextAreaElement>) => void,
     toggleModifyCreatorData: () => void,
     toggleRevokeAuth: (name: "freeze" | "mint" | "update") => void,
     clickNextPage: () => void,
-    setSignature: (sig: string) => void
+    setSignature: (sig: string) => void,
+    setMintAddress: (addr: string) => void
 }) {
     const [displayPrice, setDisplayPrice] = useState<number>(0);
     const [loading, setLoading] = useState<boolean>(false);
@@ -392,21 +394,20 @@ function PageThree({ tokenForm, clickPrevPage, handleFormChange, toggleModifyCre
                 body: tokenFormData,
             });
 
-            // const { msg, signature } = await getFinalResponse.json();
-            const { msg } = await getFinalResponse.json();
+            const { msg, signature, mintAddress } = await getFinalResponse.json();
 
             if (!getFinalResponse.ok) {
                 setError(msg);
+            } else {
+                setSignature(signature);
+                setMintAddress(mintAddress);
             }
-            // } else {
-            //     setSignature(signature);
-            // }
-
         } catch (err) {
             console.error(err);
         }
-
+        
         setLoading(false);
+        clickNextPage();
     }
 
     type Authority = {
@@ -689,14 +690,39 @@ function PageThree({ tokenForm, clickPrevPage, handleFormChange, toggleModifyCre
     );
 }
 
-function CompletePage({ tokenForm, tempIconUrl, startOver }: {
+function CompletePage({ tokenForm, tempIconUrl, mintAddress, startOver }: {
     tokenForm: TokenForm,
     tempIconUrl: string,
+    mintAddress: string,
     startOver: () => void
 }) {
+    const [miniAddr, setMiniAddr] = useState<string>("");
+
+    async function copyToClipboard() {
+        try {
+            await navigator.clipboard.writeText(mintAddress);
+        } catch(e) {
+            console.error("Couldn't copy text:", e);
+        }
+    }
+
+    useEffect(() => {
+        let minifiedLeft: string = "";
+        let minifiedRight: string = "";
+
+        for (let i = 0; i < 5; i++) {
+            const leftChar = mintAddress[i];
+            const rightChar = mintAddress[(mintAddress.length - 1) - i];
+
+            minifiedLeft += leftChar;
+            minifiedRight = `${rightChar}${minifiedRight}`;
+        }
+
+        setMiniAddr(`${minifiedLeft}...${minifiedRight}`);
+    }, [mintAddress]);
+
     return (
         <div className="flex flex-col w-full">
-            {/* Bruh this looks like a fart lmao */}
             <div className="flex flex-col w-full text-center my-4 animate-fade-down animate-once animate-ease-in-out">
                 <span className="font-bold mx-auto text-2xl lg:text-4xl">🎉 CONGRATULATIONS!</span>
                 <span className="mx-auto">This is the start of something amazing!</span>
@@ -715,13 +741,13 @@ function CompletePage({ tokenForm, tempIconUrl, startOver }: {
             </div>
 
             <div className="flex flex-col mx-auto my-4 w-4/5 md:w-3/5">
-                <div className="flex flex-col mx-auto my-2 w-full">
+                <div className="flex flex-col mx-auto my-2 w-full" onClick={copyToClipboard}>
                     <div className="flex flex-row bg-white text-center border-4 border-black rounded-lg p-2 shadow-pop-small active:translate-y-1 active:shadow-none active:bg-pink active:text-white hover:bg-purple hover:cursor-pointer">
                         <div className="mx-1">
                             <FaCopy />
                         </div>
-                        <span className="hidden md:block font-bold text-sm">DEMXNgR5ncKe4MpNG9BDd2SnqMkMSc6BGAAswfHgXaTd</span>
-                        <span className="md:hidden font-bold text-sm">DEMXN...gXaTd</span>
+                        <span className="hidden lg:block font-bold text-sm">{mintAddress}</span>
+                        <span className="lg:hidden font-bold text-sm">{miniAddr}</span>
                     </div>
                 </div>
 
@@ -734,23 +760,27 @@ function CompletePage({ tokenForm, tempIconUrl, startOver }: {
                     </div>
                 </div>
 
-                <div className="flex flex-col mx-auto my-2 w-full">
-                    <div className="flex flex-row bg-white text-center border-4 border-black rounded-lg p-2 shadow-pop-small active:translate-y-1 active:shadow-none active:bg-pink active:text-white hover:bg-purple hover:cursor-pointer">
-                        <div className="mx-1">
-                            <FaExternalLinkAlt />
+                <Link href={`https://solscan.io/token/${mintAddress}?cluster=devnet`} target="_blank">
+                    <div className="flex flex-col mx-auto my-2 w-full">
+                        <div className="flex flex-row bg-white text-center border-4 border-black rounded-lg p-2 shadow-pop-small active:translate-y-1 active:shadow-none active:bg-pink active:text-white hover:bg-purple hover:cursor-pointer">
+                            <div className="mx-1">
+                                <FaExternalLinkAlt />
+                            </div>
+                            <span className="font-bold text-sm">View on Solscan</span>
                         </div>
-                        <span className="font-bold text-sm">View on Solscan</span>
                     </div>
-                </div>
+                </Link>
 
-                <div className="flex flex-col mx-auto my-2 w-full">
-                    <div className="flex flex-row bg-white text-center border-4 border-black rounded-lg p-2 shadow-pop-small active:translate-y-1 active:shadow-none active:bg-pink active:text-white hover:bg-purple hover:cursor-pointer">
-                        <div className="mx-1">
-                            <FaExternalLinkAlt />
+                <Link href="https://raydium.io/liquidity/create-pool/" target="_blank">
+                    <div className="flex flex-col mx-auto my-2 w-full">
+                        <div className="flex flex-row bg-white text-center border-4 border-black rounded-lg p-2 shadow-pop-small active:translate-y-1 active:shadow-none active:bg-pink active:text-white hover:bg-purple hover:cursor-pointer">
+                            <div className="mx-1">
+                                <FaExternalLinkAlt />
+                            </div>
+                            <span className="font-bold text-sm">Create Liquidity</span>
                         </div>
-                        <span className="font-bold text-sm">Create Liquidity</span>
                     </div>
-                </div>
+                </Link>
             </div>
 
             <div className="flex w-full mb-8">
@@ -762,17 +792,15 @@ function CompletePage({ tokenForm, tempIconUrl, startOver }: {
     )
 }
 
-function PageFour({ tokenForm, signature, tempIconUrl, clickPrevPage, startOver }: {
+function PageFour({ tokenForm, mintAddress, tempIconUrl, clickPrevPage, startOver }: {
     tokenForm: TokenForm,
-    signature: string,
+    mintAddress: string,
     tempIconUrl: string,
     clickPrevPage: () => void,
     startOver: () => void
 }) {
     const [loading, setLoading] = useState<boolean>(true);
     const [error, setError] = useState<string>("");
-    const [tokenAddr, setTokenAddr] = useState<string>("");
-    const [tokenIcon, setTokenIcon] = useState<string>("");
 
     function closeErrorPage() {
         setError("");
@@ -780,8 +808,8 @@ function PageFour({ tokenForm, signature, tempIconUrl, clickPrevPage, startOver 
     }
 
     useEffect(() => {
-        
-    }, []);
+        setLoading(false);
+    }, [loading]);
 
     return (
         <>
@@ -799,7 +827,7 @@ function PageFour({ tokenForm, signature, tempIconUrl, clickPrevPage, startOver 
                                 </div>
                             </div>
                             :
-                            <CompletePage tokenForm={tokenForm} tempIconUrl={tempIconUrl} startOver={startOver} />
+                            <CompletePage tokenForm={tokenForm} tempIconUrl={tempIconUrl} mintAddress={mintAddress} startOver={startOver} />
                     )
             }
         </>
@@ -815,6 +843,7 @@ export default function CreateTokenForm({ page, setPage }: {
     const [disabled, setDisabled] = useState<boolean>(true);
     const [signature, setSignature] = useState<string>("");
     const [tempIconUrl, setTempIconUrl] = useState<string>("");
+    const [mintAddress, setMintAddress] = useState<string>("");
 
     const acceptedFileExtensions = ["jpg", "png", "jpeg", "jfif", "jpj", "gif", "pjpeg"];
     const acceptedFileTypeString = acceptedFileExtensions.map((ext) => `.${ext}`).join(',');
@@ -1042,6 +1071,7 @@ export default function CreateTokenForm({ page, setPage }: {
                         toggleRevokeAuth={toggleRevokeAuth}
                         clickNextPage={clickNextPage}
                         setSignature={setSignature}
+                        setMintAddress={setMintAddress}
                     />
                 )
             }
@@ -1050,7 +1080,7 @@ export default function CreateTokenForm({ page, setPage }: {
                 page === 3 && (
                     <PageFour
                         tokenForm={tokenForm}
-                        signature={signature}
+                        mintAddress={mintAddress}
                         tempIconUrl={tempIconUrl}
                         clickPrevPage={clickPrevPage}
                         startOver={startOver}

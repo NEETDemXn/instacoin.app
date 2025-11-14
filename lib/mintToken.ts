@@ -237,5 +237,6 @@ export async function mintToken(transactionId: string, image: File) {
         TOKEN_2022_PROGRAM_ID
     );
 
-    console.log(`mint: ${mint.publicKey}`);
+    // console.log(`mint: ${mint.publicKey}`);
+    return mint.publicKey;
 }
