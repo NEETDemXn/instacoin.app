@@ -3,7 +3,6 @@
 import { useState, useRef, useEffect, DragEvent } from "react";
 import { useWallet } from "@solana/wallet-adapter-react";
 import { Transaction } from "@solana/web3.js";
-import sharp from "sharp";
 import Image from "next/image";
 import Link from "next/link";
 
@@ -333,14 +332,13 @@ function PageTwo({ tokenForm, error, disabled, handleFormChange, clickNextPage, 
     );
 }
 
-function PageThree({ tokenForm, clickPrevPage, handleFormChange, toggleModifyCreatorData, toggleRevokeAuth, clickNextPage, setSignature, setMintAddress }: {
+function PageThree({ tokenForm, clickPrevPage, handleFormChange, toggleModifyCreatorData, toggleRevokeAuth, clickNextPage, setMintAddress }: {
     tokenForm: TokenForm,
     clickPrevPage: () => void,
     handleFormChange: (evt: ChangeEvent<HTMLInputElement | HTMLTextAreaElement>) => void,
     toggleModifyCreatorData: () => void,
     toggleRevokeAuth: (name: "freeze" | "mint" | "update") => void,
     clickNextPage: () => void,
-    setSignature: (sig: string) => void,
     setMintAddress: (addr: string) => void
 }) {
     const [displayPrice, setDisplayPrice] = useState<number>(0);
@@ -394,20 +392,19 @@ function PageThree({ tokenForm, clickPrevPage, handleFormChange, toggleModifyCre
                 body: tokenFormData,
             });
 
-            const { msg, signature, mintAddress } = await getFinalResponse.json();
+            const { msg, mintAddress } = await getFinalResponse.json();
 
             if (!getFinalResponse.ok) {
                 setError(msg);
             } else {
-                setSignature(signature);
                 setMintAddress(mintAddress);
+                clickNextPage();
             }
         } catch (err) {
             console.error(err);
         }
         
         setLoading(false);
-        clickNextPage();
     }
 
     type Authority = {
@@ -841,7 +838,6 @@ export default function CreateTokenForm({ page, setPage }: {
     const [tokenForm, setTokenForm] = useState<TokenForm>(initTokenForm);
     const [error, setError] = useState<string>("");
     const [disabled, setDisabled] = useState<boolean>(true);
-    const [signature, setSignature] = useState<string>("");
     const [tempIconUrl, setTempIconUrl] = useState<string>("");
     const [mintAddress, setMintAddress] = useState<string>("");
 
@@ -1070,7 +1066,6 @@ export default function CreateTokenForm({ page, setPage }: {
                         handleFormChange={handleFormChange}
                         toggleRevokeAuth={toggleRevokeAuth}
                         clickNextPage={clickNextPage}
-                        setSignature={setSignature}
                         setMintAddress={setMintAddress}
                     />
                 )

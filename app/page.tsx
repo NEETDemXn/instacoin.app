@@ -13,7 +13,7 @@ function Navbar() {
     <div className="flex flex-col">
       <div className="flex w-full bg-white text-black">
         <div className="mx-auto">
-          <span className="text-sm font-light">💖 Please be careful for any imitations of this app.</span>
+          <span className="text-sm font-light">💖 Only used for the Solana-Devnet for now.</span>
         </div>
       </div>
       <div className="font-[family-name:var(--font-pixelfy)] flex flex-col lg:flex-row w-full bg-stone-950 text-white">
